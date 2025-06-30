@@ -6,7 +6,7 @@ const port = process.env.PORT || 3000;
 
 // Enable CORS
 app.use(cors({
-  origin: 'https://vinjanakeralamquizz.onrender.com', // Update with your frontend URL
+  origin: 'https://vinjanakeralamquizzz.onrender.com', // Update with your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'x-api-key']
 }));
