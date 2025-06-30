@@ -1,7 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Use Render's disk path for SQLite or fallback to local
 const dbPath = process.env.RENDER ? '/opt/render/project/src/quiz_app.db' : path.join(__dirname, 'quiz_app.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
@@ -11,7 +10,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
   console.log('Connected to SQLite database');
 });
 
-// Initialize tables
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS quizzes (
