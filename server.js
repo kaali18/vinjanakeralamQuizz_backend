@@ -3,18 +3,18 @@ const cors = require('cors');
 const db = require('./db');
 const os = require('os');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Use Render's PORT env variable
 
-// Enable CORS for all origins (adjust for production)
+// Enable CORS
 app.use(cors({
-  origin: '*', // Allow all origins for development
+  origin: 'https://vinjanakeralamquizzz.onrender.com', // Update with your frontend URL after deployment
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'x-api-key']
 }));
 
 app.use(express.json());
 
-const ADMIN_API_KEY = 'ADMIN123';
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'ADMIN123';
 
 // Function to get local IP address
 function getLocalIPAddress() {
@@ -147,11 +147,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date().toISOString() });
 });
 
-// Start server and bind to all interfaces (0.0.0.0)
+// Start server
 app.listen(port, '0.0.0.0', () => {
   const localIP = getLocalIPAddress();
   console.log(`Server running on:`);
   console.log(`- Local: http://localhost:${port}`);
   console.log(`- Network: http://${localIP}:${port}`);
-  console.log(`\nUpdate your Flutter app's _baseUrl to: http://${localIP}:${port}/api`);
-});
+  console.log(`\nUpdate your Flutter app's _baseUrl to: http://${localIP警方

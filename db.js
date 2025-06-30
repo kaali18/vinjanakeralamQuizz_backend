@@ -1,13 +1,18 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Create database file
-const dbPath = path.join(__dirname, 'quiz_app.db');
-const db = new sqlite3.Database(dbPath);
+// Use Render's disk path for SQLite or fallback to local
+const dbPath = process.env.RENDER ? '/opt/render/project/src/quiz_app.db' : path.join(__dirname, 'quiz_app.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('Error connecting to SQLite:', err.message);
+    return;
+  }
+  console.log('Connected to SQLite database');
+});
 
 // Initialize tables
 db.serialize(() => {
-  // Create quizzes table
   db.run(`
     CREATE TABLE IF NOT EXISTS quizzes (
       id TEXT PRIMARY KEY,
@@ -17,9 +22,10 @@ db.serialize(() => {
       createdAt TEXT NOT NULL,
       isActive INTEGER DEFAULT 0
     )
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating quizzes table:', err.message);
+  });
 
-  // Create results table
   db.run(`
     CREATE TABLE IF NOT EXISTS results (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +37,9 @@ db.serialize(() => {
       totalTimeSpent INTEGER NOT NULL,
       FOREIGN KEY (quizId) REFERENCES quizzes (id)
     )
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating results table:', err.message);
+  });
 });
 
 console.log('Database initialized successfully');
