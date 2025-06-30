@@ -1,13 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
-const os = require('os');
 const app = express();
-const port = process.env.PORT || 3000; // Use Render's PORT env variable
+const port = process.env.PORT || 3000;
 
 // Enable CORS
 app.use(cors({
-  origin: 'https://vinjanakeralamquizzz.onrender.com', // Update with your frontend URL after deployment
+  origin: 'https://vinjanakeralamquizz.onrender.com', // Update with your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'x-api-key']
 }));
@@ -15,19 +14,6 @@ app.use(cors({
 app.use(express.json());
 
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'ADMIN123';
-
-// Function to get local IP address
-function getLocalIPAddress() {
-  const interfaces = os.networkInterfaces();
-  for (const name of Object.keys(interfaces)) {
-    for (const interface of interfaces[name]) {
-      if (interface.family === 'IPv4' && !interface.internal) {
-        return interface.address;
-      }
-    }
-  }
-  return 'localhost';
-}
 
 // Middleware to verify API key for admin actions
 const verifyAdmin = (req, res, next) => {
@@ -45,7 +31,6 @@ app.post('/api/quizzes', verifyAdmin, (req, res) => {
     INSERT INTO quizzes (id, title, questions, timePerQuestion, createdAt, isActive)
     VALUES (?, ?, ?, ?, ?, ?)
   `);
-  
   try {
     stmt.run(id, title, JSON.stringify(questions), timePerQuestion, createdAt, isActive ? 1 : 0);
     res.status(201).json({ message: 'Quiz created successfully' });
@@ -95,7 +80,6 @@ app.put('/api/quizzes/:id/status', verifyAdmin, (req, res) => {
   const { id } = req.params;
   const { isActive } = req.body;
   const stmt = db.prepare('UPDATE quizzes SET isActive = ? WHERE id = ?');
-  
   try {
     stmt.run(isActive ? 1 : 0, id);
     res.json({ message: 'Quiz status updated' });
@@ -113,7 +97,6 @@ app.post('/api/results', (req, res) => {
     INSERT INTO results (participantName, quizId, score, totalQuestions, completedAt, totalTimeSpent)
     VALUES (?, ?, ?, ?, ?, ?)
   `);
-  
   try {
     stmt.run(participantName, quizId, score, totalQuestions, completedAt, totalTimeSpent);
     res.status(201).json({ message: 'Result submitted successfully' });
@@ -147,10 +130,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date().toISOString() });
 });
 
-// Start server
 app.listen(port, '0.0.0.0', () => {
-  const localIP = getLocalIPAddress();
-  console.log(`Server running on:`);
-  console.log(`- Local: http://localhost:${port}`);
-  console.log(`- Network: http://${localIP}:${port}`);
-  console.log(`\nUpdate your Flutter app's _baseUrl to: https://vinjanakeralamquizzz.onrender.com`);
+  console.log(`Server running on port ${port}`);
+});
