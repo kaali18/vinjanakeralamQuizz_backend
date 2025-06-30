@@ -153,4 +153,4 @@ app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on:`);
   console.log(`- Local: http://localhost:${port}`);
   console.log(`- Network: http://${localIP}:${port}`);
-  console.log(`\nUpdate your Flutter app's _baseUrl to: http://${localIP警方
+  console.log(`\nUpdate your Flutter app's _baseUrl to: https://vinjanakeralamquizzz.onrender.com`);
