@@ -6,7 +6,19 @@ const port = process.env.PORT || 3000;
 
 // Enable CORS
 app.use(cors({
-  origin: 'https://vinjanakeralamquizzz.onrender.com', // Update with your frontend URL
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'https://vinjanakeralamquizz.onrender.com',
+      'https://vinjanakeralamquizzz.onrender.com',
+      'http://localhost:8080',
+      'http://localhost:3000',
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'x-api-key']
 }));
@@ -19,7 +31,7 @@ const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'ADMIN123';
 const verifyAdmin = (req, res, next) => {
   const apiKey = req.headers['x-api-key'];
   if (apiKey !== ADMIN_API_KEY) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ error: 'Unauthorized: Invalid API key' });
   }
   next();
 };
@@ -27,6 +39,9 @@ const verifyAdmin = (req, res, next) => {
 // Create a new quiz (Admin only)
 app.post('/api/quizzes', verifyAdmin, (req, res) => {
   const { id, title, questions, timePerQuestion, createdAt, isActive } = req.body;
+  if (!id || !title || !questions || !timePerQuestion || !createdAt) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
   const stmt = db.prepare(`
     INSERT INTO quizzes (id, title, questions, timePerQuestion, createdAt, isActive)
     VALUES (?, ?, ?, ?, ?, ?)
@@ -35,7 +50,8 @@ app.post('/api/quizzes', verifyAdmin, (req, res) => {
     stmt.run(id, title, JSON.stringify(questions), timePerQuestion, createdAt, isActive ? 1 : 0);
     res.status(201).json({ message: 'Quiz created successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error inserting quiz:', err.message);
+    res.status(500).json({ error: 'Failed to create quiz: ' + err.message });
   } finally {
     stmt.finalize();
   }
@@ -45,7 +61,8 @@ app.post('/api/quizzes', verifyAdmin, (req, res) => {
 app.get('/api/quizzes', verifyAdmin, (req, res) => {
   db.all('SELECT * FROM quizzes ORDER BY createdAt DESC', [], (err, rows) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      console.error('Error fetching quizzes:', err.message);
+      return res.status(500).json({ error: 'Failed to fetch quizzes: ' + err.message });
     }
     res.json(rows.map(row => ({
       id: row.id,
@@ -62,7 +79,8 @@ app.get('/api/quizzes', verifyAdmin, (req, res) => {
 app.get('/api/quizzes/active', (req, res) => {
   db.all('SELECT * FROM quizzes WHERE isActive = 1', [], (err, rows) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      console.error('Error fetching active quizzes:', err.message);
+      return res.status(500).json({ error: 'Failed to fetch active quizzes: ' + err.message });
     }
     res.json(rows.map(row => ({
       id: row.id,
@@ -79,12 +97,19 @@ app.get('/api/quizzes/active', (req, res) => {
 app.put('/api/quizzes/:id/status', verifyAdmin, (req, res) => {
   const { id } = req.params;
   const { isActive } = req.body;
+  if (isActive === undefined) {
+    return res.status(400).json({ error: 'Missing isActive field' });
+  }
   const stmt = db.prepare('UPDATE quizzes SET isActive = ? WHERE id = ?');
   try {
-    stmt.run(isActive ? 1 : 0, id);
+    const result = stmt.run(isActive ? 1 : 0, id);
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
     res.json({ message: 'Quiz status updated' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error updating quiz status:', err.message);
+    res.status(500).json({ error: 'Failed to update quiz status: ' + err.message });
   } finally {
     stmt.finalize();
   }
@@ -93,6 +118,9 @@ app.put('/api/quizzes/:id/status', verifyAdmin, (req, res) => {
 // Submit participant result
 app.post('/api/results', (req, res) => {
   const { participantName, quizId, score, totalQuestions, completedAt, totalTimeSpent } = req.body;
+  if (!participantName || !quizId || score === undefined || !totalQuestions || !completedAt || !totalTimeSpent) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
   const stmt = db.prepare(`
     INSERT INTO results (participantName, quizId, score, totalQuestions, completedAt, totalTimeSpent)
     VALUES (?, ?, ?, ?, ?, ?)
@@ -101,7 +129,8 @@ app.post('/api/results', (req, res) => {
     stmt.run(participantName, quizId, score, totalQuestions, completedAt, totalTimeSpent);
     res.status(201).json({ message: 'Result submitted successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error inserting result:', err.message);
+    res.status(500).json({ error: 'Failed to submit result: ' + err.message });
   } finally {
     stmt.finalize();
   }
@@ -112,7 +141,8 @@ app.get('/api/results/:quizId', (req, res) => {
   const { quizId } = req.params;
   db.all('SELECT * FROM results WHERE quizId = ? ORDER BY score DESC, totalTimeSpent ASC', [quizId], (err, rows) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      console.error('Error fetching results:', err.message);
+      return res.status(500).json({ error: 'Failed to fetch results: ' + err.message });
     }
     res.json(rows.map(row => ({
       participantName: row.participantName,
