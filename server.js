@@ -154,6 +154,24 @@ app.get('/api/results/:quizId', (req, res) => {
     })));
   });
 });
+// Delete a quiz (Admin only)
+app.delete('/api/quizzes/:id', verifyAdmin, (req, res) => {
+  const { id } = req.params;
+  const stmt = db.prepare('DELETE FROM quizzes WHERE id = ?');
+  try {
+    const result = stmt.run(id);
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+    console.log(`Quiz ${id} deleted successfully`);
+    res.json({ message: 'Quiz deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting quiz:', err.message);
+    res.status(500).json({ error: 'Failed to delete quiz: ' + err.message });
+  } finally {
+    stmt.finalize();
+  }
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
