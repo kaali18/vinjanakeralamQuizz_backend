@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = process.env.RENDER ? '/opt/render/project/src/quiz_app.db' : path.join(__dirname, 'quiz_app.db');
+const dbPath = process.env.RENDER ? '/var/data/quiz_app.db' : path.join(__dirname, 'quiz_app.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error connecting to SQLite:', err.message);
@@ -22,6 +22,7 @@ db.serialize(() => {
     )
   `, (err) => {
     if (err) console.error('Error creating quizzes table:', err.message);
+    else console.log('Quizzes table created or already exists');
   });
 
   db.run(`
@@ -37,6 +38,7 @@ db.serialize(() => {
     )
   `, (err) => {
     if (err) console.error('Error creating results table:', err.message);
+    else console.log('Results table created or already exists');
   });
 });
 
