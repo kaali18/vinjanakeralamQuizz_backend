@@ -6,14 +6,28 @@ const port = process.env.PORT || 3000;
 
 // Enhanced CORS configuration
 app.use(cors({
-  origin: [
-    'https://vinjanakeralamquiz.onrender.com',
-    'https://vinjanakeralamquizz.onrender.com',
-    'https://vinjanakeralamquizz-backend-1.onrender.com',
-    'http://localhost:3000',
-    'http://localhost:8080',
-    /\.onrender\.com$/,  // Allow all Render.com subdomains
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // List of allowed origins
+    const allowedOrigins = [
+      'https://vinjanakeralamquizzz.onrender.com',
+      'https://vinjanakeralamquiz.onrender.com',
+      'https://vinjanakeralamquizz-backend-1.onrender.com',
+      'http://localhost:3000',
+      'http://localhost:8080',
+      'http://localhost:5000',
+    ];
+    
+    // Check if origin is in allowed list or is a render.com subdomain
+    if (allowedOrigins.includes(origin) || origin.endsWith('.onrender.com')) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
   credentials: true,
