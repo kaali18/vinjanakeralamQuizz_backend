@@ -77,7 +77,7 @@ db.serialize(() => {
     {
       question: 'On October 8th 2024, National Film Awards for the year 2022 were declared and the award for the best film was for a Malayalam film ATTAM. Who was the director of the film?',
       options: ['Vishnu Mohan', 'Anand Ekarshi', 'Sajin Babu', 'Kavya Prakash'],
-      correctAnswer: 1
+      correctAnswer: 2
     },
     {
       question: 'The course "Junior Cloud Core Engineer" comes under which domain?',
@@ -92,7 +92,7 @@ db.serialize(() => {
     {
       question: 'Which country invented the cryptocurrency Bitcoin?',
       options: ['Japan', 'China', 'USA', 'India'],
-      correctAnswer: 2
+      correctAnswer: 1
     }
   ];
 
