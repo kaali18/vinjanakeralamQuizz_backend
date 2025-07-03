@@ -46,21 +46,23 @@ const verifyAdmin = (req, res, next) => {
 };
 
 // Create a new quiz (Admin only)
-app.post('/api/quizzes', verifyAdmin, (req, res) => {
-  const { id, title, questions, timePerQuestion, createdAt, isActive } = req.body;
-  if (!id || !title || !questions || !timePerQuestion || !createdAt) {
+app.post('/api/results', (req, res) => {
+  const { participantName, institutionName, quizId, score, totalQuestions, completedAt, totalTimeSpent } = req.body; // ADDED institutionName
+  if (!participantName || !quizId || score === undefined || !totalQuestions || !completedAt || !totalTimeSpent) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   const stmt = db.prepare(`
-    INSERT INTO quizzes (id, title, questions, timePerQuestion, createdAt, isActive)
+    INSERT INTO results (participantName, quizId, score, totalQuestions, completedAt, totalTimeSpent)
     VALUES (?, ?, ?, ?, ?, ?)
   `);
   try {
-    stmt.run(id, title, JSON.stringify(questions), timePerQuestion, createdAt, isActive ? 1 : 0);
-    res.status(201).json({ message: 'Quiz created successfully' });
+    // Note: institutionName is not being stored in the current database schema for 'results' table.
+    // If you intend to store it, you would need to add a column for it in db.js and include it in the INSERT statement.
+    stmt.run(participantName, quizId, score, totalQuestions, completedAt, totalTimeSpent);
+    res.status(201).json({ message: 'Result submitted successfully' });
   } catch (err) {
-    console.error('Error inserting quiz:', err.message);
-    res.status(500).json({ error: 'Failed to create quiz: ' + err.message });
+    console.error('Error inserting result:', err.message);
+    res.status(500).json({ error: 'Failed to submit result: ' + err.message });
   } finally {
     stmt.finalize();
   }
